@@ -6,6 +6,8 @@ import com.irshad.employee_manager_backend.repository.EmployeeRepository
 import org.springframework.stereotype.Service
 import com.irshad.employee_manager_backend.exception.EmployeeNotFoundException
 import com.irshad.employee_manager_backend.mapper.EmployeeMapper
+import com.irshad.employee_manager_backend.response.pagination.PaginationMetadata
+import com.irshad.employee_manager_backend.response.pagination.PaginationResponse
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
@@ -18,7 +20,7 @@ class EmployeeService (
 ) {
     private val logger = LoggerFactory.getLogger(EmployeeService::class.java)
 
-    fun getAllEmployees(page: Int, size: Int): Page<EmployeeResponseDTO> {
+    fun getAllEmployees(page: Int, size: Int): PaginationResponse<EmployeeResponseDTO> {
 
         logger.info("Fetching employees with page: {}, size: {}", page, size)
 
@@ -26,9 +28,26 @@ class EmployeeService (
 
         val employeesPage = employeeRepository.findAll(pageable)
 
+        val employeeResponseList = employeesPage.content.map {
+            employeeMapper.toResponseDto(it)
+        }
+
+        val paginationMetadata = PaginationMetadata(
+            currentPage = employeesPage.number,
+            pageSize = employeesPage.size,
+            totalPages = employeesPage.totalPages,
+            totalRecords = employeesPage.totalElements,
+            hasNext = employeesPage.hasNext(),
+            hasPrevious = employeesPage.hasPrevious() ,
+
+        )
+
         logger.info("Fetched {} employees from page {}", employeesPage.numberOfElements, page)
 
-        return employeesPage.map { employeeMapper.toResponseDto(it) }
+        return PaginationResponse(
+            items = employeeResponseList,
+            pagination = paginationMetadata
+        )
     }
 
     fun createEmployee(requestDTO: EmployeeRequestDTO): EmployeeResponseDTO {

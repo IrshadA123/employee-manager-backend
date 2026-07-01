@@ -3,6 +3,7 @@ package com.irshad.employee_manager_backend.controller
 import com.irshad.employee_manager_backend.dto.EmployeeRequestDTO
 import com.irshad.employee_manager_backend.dto.EmployeeResponseDTO
 import com.irshad.employee_manager_backend.response.ApiResponse
+import com.irshad.employee_manager_backend.response.pagination.PaginationResponse
 import com.irshad.employee_manager_backend.service.EmployeeService
 import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.*
@@ -29,7 +30,7 @@ class EmployeeController (
     fun getAllEmployees(
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "10") size: Int
-    ): ApiResponse<Page<EmployeeResponseDTO>> {
+    ): ApiResponse<PaginationResponse<EmployeeResponseDTO>> {
 
         return ApiResponse(
             success = true,

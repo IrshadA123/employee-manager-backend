@@ -8,9 +8,11 @@ import com.irshad.employee_manager_backend.exception.EmployeeNotFoundException
 import com.irshad.employee_manager_backend.mapper.EmployeeMapper
 import com.irshad.employee_manager_backend.response.pagination.PaginationMetadata
 import com.irshad.employee_manager_backend.response.pagination.PaginationResponse
+import org.apache.commons.lang3.StringUtils.contains
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 
 @Service
 class EmployeeService (
@@ -20,11 +22,35 @@ class EmployeeService (
 ) {
     private val logger = LoggerFactory.getLogger(EmployeeService::class.java)
 
-    fun getAllEmployees(page: Int, size: Int): PaginationResponse<EmployeeResponseDTO> {
+    fun getAllEmployees(page: Int,
+                        size: Int,
+                        sortBy:String,
+                        direction:String
+    ): PaginationResponse<EmployeeResponseDTO> {
 
-        logger.info("Fetching employees with page: {}, size: {}", page, size)
+        logger.info("Fetching employees page={}, size={}, sortBy={}, direction={}", page, size, sortBy, direction)
 
-        val pageable = PageRequest.of(page, size)
+
+        val allowedSortFields= listOf("id","name","email","salary","department","contactNumber")
+        val normalizedSortBy = sortBy.lowercase()
+
+        if (!allowedSortFields.contains(normalizedSortBy)) {
+            logger.warn("Invalid sort field: {}", sortBy)
+
+            throw IllegalArgumentException(
+                "Invalid sort field: $sortBy. Allowed fields are: ${
+                    allowedSortFields.joinToString(", ")
+                }"
+            )
+        }
+
+        val sortDirection = when (direction.lowercase()) {
+            "asc" -> Sort.Direction.ASC
+            "desc" -> Sort.Direction.DESC
+            else ->throw IllegalArgumentException("Invalid sort direction: $direction. Allowed values are: asc, desc")
+        }
+
+        val pageable = PageRequest.of(page, size, Sort.by(sortDirection, normalizedSortBy))
 
         val employeesPage = employeeRepository.findAll(pageable)
 

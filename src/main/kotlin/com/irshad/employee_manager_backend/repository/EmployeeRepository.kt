@@ -2,8 +2,9 @@ package com.irshad.employee_manager_backend.repository
 
 import com.irshad.employee_manager_backend.entity.Employee
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 
-interface EmployeeRepository : JpaRepository<Employee, Long> {
+interface EmployeeRepository : JpaRepository<Employee, Long>, JpaSpecificationExecutor<Employee> {
 
     fun findByNameContainingIgnoreCaseOrEmailContainingIgnoreCaseOrDepartmentContainingIgnoreCaseOrContactNumberContainingIgnoreCase(
         name: String,

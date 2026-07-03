@@ -6,6 +6,7 @@ import com.irshad.employee_manager_backend.repository.EmployeeRepository
 import org.springframework.stereotype.Service
 import com.irshad.employee_manager_backend.exception.EmployeeNotFoundException
 import com.irshad.employee_manager_backend.mapper.EmployeeMapper
+import com.irshad.employee_manager_backend.repository.specification.EmployeeSpecification
 import com.irshad.employee_manager_backend.response.pagination.PaginationMetadata
 import com.irshad.employee_manager_backend.response.pagination.PaginationResponse
 import org.apache.commons.lang3.StringUtils.contains
@@ -134,6 +135,24 @@ class EmployeeService (
         val employees=employeeRepository.findByNameContainingIgnoreCaseOrEmailContainingIgnoreCaseOrDepartmentContainingIgnoreCaseOrContactNumberContainingIgnoreCase(keyword,keyword,keyword,keyword)
         val employeeResponseList=employees.map { employeeMapper.toResponseDto(it) }
         logger.info("Found {} employees matching keyword: {}", employeeResponseList.size, keyword)
+        return employeeResponseList
+    }
+
+
+    fun filterEmployees(
+        department: String?,
+        minSalary: Double?,
+        maxSalary: Double?
+    ): List<EmployeeResponseDTO> {
+        logger.info("Filtering employees with department: {}, minSalary: {}, maxSalary: {}", department, minSalary, maxSalary)
+        val specification = EmployeeSpecification.filterEmployees(
+            department,
+            minSalary,
+            maxSalary
+        )
+        val employees = employeeRepository.findAll(specification)
+        val employeeResponseList = employees.map { employeeMapper.toResponseDto(it) }
+        logger.info("Found {} employees matching filter criteria", employeeResponseList.size)
         return employeeResponseList
     }
 

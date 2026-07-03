@@ -107,4 +107,25 @@ class EmployeeController (
         )
 
     }
+    @Operation(
+        summary = "Filter employees",
+        description = "Filter employees by department and salary range."
+    )
+    @GetMapping("/filter")
+    fun filterEmployees(
+        @RequestParam(required = false) department: String?,
+        @RequestParam(required = false) minSalary: Double?,
+        @RequestParam(required = false) maxSalary: Double?
+    ): ApiResponse<List<EmployeeResponseDTO>> {
+        val employees = employeeService.filterEmployees(
+            department,
+            minSalary,
+            maxSalary
+        )
+        return ApiResponse(
+            success = true,
+            message = "Employees filtered successfully",
+            data = employees
+        )
+    }
 }

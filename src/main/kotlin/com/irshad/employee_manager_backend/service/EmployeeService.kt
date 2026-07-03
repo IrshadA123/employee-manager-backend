@@ -122,4 +122,19 @@ class EmployeeService (
         logger.info("Employee deleted successfully with id: {}", id)
     }
 
+
+    fun searchEmployees(keyword:String):List<EmployeeResponseDTO>{
+        logger.info("Searching employees with keyword:{} ", keyword)
+        val normalizedKeyword = keyword.trim()
+
+        if (normalizedKeyword.isBlank()) {
+            logger.warn("Search keyword is blank")
+            throw IllegalArgumentException("Keyword cannot be blank")
+        }
+        val employees=employeeRepository.findByNameContainingIgnoreCaseOrEmailContainingIgnoreCaseOrDepartmentContainingIgnoreCaseOrContactNumberContainingIgnoreCase(keyword,keyword,keyword,keyword)
+        val employeeResponseList=employees.map { employeeMapper.toResponseDto(it) }
+        logger.info("Found {} employees matching keyword: {}", employeeResponseList.size, keyword)
+        return employeeResponseList
+    }
+
 }

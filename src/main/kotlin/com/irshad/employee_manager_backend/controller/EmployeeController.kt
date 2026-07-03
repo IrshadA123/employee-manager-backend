@@ -94,4 +94,17 @@ class EmployeeController (
             data = "Employee with id $id deleted successfully"
         )
     }
+    @Operation(
+        summary ="Search employees",
+        description="Search employees by name, email,department or contact number."
+    )
+    @GetMapping("/search")
+    fun searchEmployee(@RequestParam keyword:String):ApiResponse<List<EmployeeResponseDTO>>{
+        return ApiResponse(
+            success = true,
+            message = "Employees fetched successfully",
+            data = employeeService.searchEmployees(keyword)
+        )
+
+    }
 }

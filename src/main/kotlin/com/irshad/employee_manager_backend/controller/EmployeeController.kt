@@ -29,13 +29,15 @@ class EmployeeController (
     @GetMapping
     fun getAllEmployees(
         @RequestParam(defaultValue = "0") page: Int,
-        @RequestParam(defaultValue = "10") size: Int
+        @RequestParam(defaultValue = "10") size: Int,
+        @RequestParam(defaultValue = "id") sortBy: String,
+        @RequestParam(defaultValue = "asc") direction: String
     ): ApiResponse<PaginationResponse<EmployeeResponseDTO>> {
 
         return ApiResponse(
             success = true,
             message = "Employees fetched successfully",
-            data = employeeService.getAllEmployees(page, size)
+            data = employeeService.getAllEmployees(page, size, sortBy, direction)
         )
     }
 

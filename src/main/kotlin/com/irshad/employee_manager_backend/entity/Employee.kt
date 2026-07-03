@@ -28,6 +28,9 @@ class Employee (
     var department: String = "",
 
     @field:NotBlank(message = "Contact number is required")
-    var contactNumber: String = ""
+    var contactNumber: String = "",
+
+    @Column(nullable = false)
+    var deleted: Boolean = false
 
 )

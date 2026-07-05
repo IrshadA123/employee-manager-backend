@@ -1,0 +1,5 @@
+ALTER TABLE employees
+ADD COLUMN created_at TIMESTAMP;
+
+ALTER TABLE employees
+ADD COLUMN updated_at TIMESTAMP;

@@ -4,6 +4,9 @@ import jakarta.persistence.*
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Positive
+import org.hibernate.annotations.CreationTimestamp
+import org.hibernate.annotations.UpdateTimestamp
+import java.time.LocalDateTime
 
 @Entity
 @Table(name = "employees")
@@ -31,6 +34,14 @@ class Employee (
     var contactNumber: String = "",
 
     @Column(nullable = false)
-    var deleted: Boolean = false
+    var deleted: Boolean = false,
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    var createdAt: LocalDateTime? = null,
+
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
+    var updatedAt: LocalDateTime? = null
 
 )

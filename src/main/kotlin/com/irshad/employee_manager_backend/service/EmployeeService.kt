@@ -2,6 +2,7 @@ package com.irshad.employee_manager_backend.service
 
 import com.irshad.employee_manager_backend.dto.EmployeeRequestDTO
 import com.irshad.employee_manager_backend.dto.EmployeeResponseDTO
+import com.irshad.employee_manager_backend.entity.Employee
 import com.irshad.employee_manager_backend.repository.EmployeeRepository
 import org.springframework.stereotype.Service
 import com.irshad.employee_manager_backend.exception.EmployeeNotFoundException
@@ -53,7 +54,7 @@ class EmployeeService (
 
         val pageable = PageRequest.of(page, size, Sort.by(sortDirection, normalizedSortBy))
 
-        val employeesPage = employeeRepository.findAll(pageable)
+        val employeesPage = employeeRepository.findByDeletedFalse(pageable)
 
         val employeeResponseList = employeesPage.content.map {
             employeeMapper.toResponseDto(it)
@@ -91,6 +92,8 @@ class EmployeeService (
         val employee = employeeRepository.findById(id).orElseThrow {
             logger.warn("Employee not found with id: {}", id)
             EmployeeNotFoundException("Employee not found with id: $id")}
+
+        validateEmployeeIsActive(employee, id)
         employee.name = request.name
         employee.email = request.email
         employee.salary = request.salary
@@ -109,6 +112,7 @@ class EmployeeService (
                 EmployeeNotFoundException("Employee not found with id: $id")
 
             }
+        validateEmployeeIsActive(employee, id)
         logger.info("Employee fetched successfully with id: {}", id)
 
         return employeeMapper.toResponseDto(employee)
@@ -118,23 +122,33 @@ class EmployeeService (
         logger.info("Deleting employee with id: {}", id)
         val employee = employeeRepository.findById(id).orElseThrow {
             logger.warn("Employee not found with id: {}", id)
-            EmployeeNotFoundException("Employee not found : $id") }
-        employeeRepository.delete(employee)
-        logger.info("Employee deleted successfully with id: {}", id)
+            EmployeeNotFoundException("Employee not found: $id")
+        }
+        if (employee.deleted) {
+            logger.warn("Employee already deleted with id: {}", id)
+            throw IllegalStateException("Employee with id $id is already deleted")
+        }
+        employee.deleted = true
+        employeeRepository.save(employee)
+        logger.info("Employee soft-deleted successfully with id: {}", id)
     }
 
 
-    fun searchEmployees(keyword:String):List<EmployeeResponseDTO>{
-        logger.info("Searching employees with keyword:{} ", keyword)
+    fun searchEmployees(keyword: String): List<EmployeeResponseDTO> {
+        logger.info("Searching employees with keyword: {}", keyword)
+
         val normalizedKeyword = keyword.trim()
 
         if (normalizedKeyword.isBlank()) {
             logger.warn("Search keyword is blank")
             throw IllegalArgumentException("Keyword cannot be blank")
         }
-        val employees=employeeRepository.findByNameContainingIgnoreCaseOrEmailContainingIgnoreCaseOrDepartmentContainingIgnoreCaseOrContactNumberContainingIgnoreCase(keyword,keyword,keyword,keyword)
-        val employeeResponseList=employees.map { employeeMapper.toResponseDto(it) }
-        logger.info("Found {} employees matching keyword: {}", employeeResponseList.size, keyword)
+        val specification = EmployeeSpecification.searchEmployees(normalizedKeyword)
+        val employees = employeeRepository.findAll(specification)
+        val employeeResponseList = employees.map {
+            employeeMapper.toResponseDto(it)
+        }
+        logger.info("Found {} employees matching keyword: {}", employeeResponseList.size, normalizedKeyword)
         return employeeResponseList
     }
 
@@ -156,4 +170,10 @@ class EmployeeService (
         return employeeResponseList
     }
 
+    private fun validateEmployeeIsActive(employee: Employee, id: Long) {
+        if (employee.deleted) {
+            logger.warn("Employee is deleted with id: {}", id)
+            throw EmployeeNotFoundException("Employee not found with id: $id")
+        }
+    }
 }

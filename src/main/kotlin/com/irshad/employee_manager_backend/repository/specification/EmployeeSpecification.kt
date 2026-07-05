@@ -1,7 +1,9 @@
 package com.irshad.employee_manager_backend.repository.specification
 
 import com.irshad.employee_manager_backend.entity.Employee
+import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.Predicate
+import jakarta.persistence.criteria.Root
 import org.springframework.data.jpa.domain.Specification
 
 
@@ -17,6 +19,7 @@ object EmployeeSpecification {
         return Specification { root, query, criteriaBuilder ->
 
             val predicates = mutableListOf<Predicate>()
+            predicates.add(isNotDeleted(root, criteriaBuilder))
 
             if (!department.isNullOrBlank()) {
                 val departmentPredicate = criteriaBuilder.equal(
@@ -41,6 +44,37 @@ object EmployeeSpecification {
                 )
                 predicates.add(maxSalaryPredicate)
             }
+
+            criteriaBuilder.and(*predicates.toTypedArray())
+        }
+    }
+    private fun isNotDeleted(
+        root: Root<Employee>,
+        criteriaBuilder: CriteriaBuilder
+    ): Predicate {
+        return criteriaBuilder.equal(
+            root.get<Boolean>("deleted"),
+            false
+        )
+    }
+    fun searchEmployees(keyword: String): Specification<Employee> {
+
+        return Specification { root, query, criteriaBuilder ->
+
+            val searchPattern = "%${keyword.lowercase()}%"
+
+            val predicates = mutableListOf<Predicate>()
+
+            predicates.add(isNotDeleted(root, criteriaBuilder))
+
+            val searchPredicate = criteriaBuilder.or(
+                criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), searchPattern),
+                criteriaBuilder.like(criteriaBuilder.lower(root.get("email")), searchPattern),
+                criteriaBuilder.like(criteriaBuilder.lower(root.get("department")), searchPattern),
+                criteriaBuilder.like(criteriaBuilder.lower(root.get("contactNumber")), searchPattern)
+            )
+
+            predicates.add(searchPredicate)
 
             criteriaBuilder.and(*predicates.toTypedArray())
         }

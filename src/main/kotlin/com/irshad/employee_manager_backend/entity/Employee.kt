@@ -3,6 +3,7 @@ package com.irshad.employee_manager_backend.entity
 import jakarta.persistence.*
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Positive
 import org.hibernate.annotations.CreationTimestamp
 import org.hibernate.annotations.UpdateTimestamp
@@ -27,8 +28,10 @@ class Employee (
     @field:Positive(message = "Salary must be positive")
     var salary: Double = 0.0,
 
-    @field:NotBlank(message = "Department is required")
-    var department: String = "",
+    @field:NotNull(message = "Department is required")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id", nullable = false)
+    var department: Department? = null,
 
     @field:NotBlank(message = "Contact number is required")
     var contactNumber: String = "",

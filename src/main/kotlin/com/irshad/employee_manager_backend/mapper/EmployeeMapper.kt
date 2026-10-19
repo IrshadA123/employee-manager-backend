@@ -13,10 +13,8 @@ class EmployeeMapper {
             name = dto.name,
             email = dto.email,
             salary = dto.salary,
-            department = dto.department,
             contactNumber = dto.contactNumber
         )
-
     }
     fun toResponseDto(employee: Employee): EmployeeResponseDTO {
 
@@ -25,10 +23,9 @@ class EmployeeMapper {
             name = employee.name,
             email = employee.email,
             salary = employee.salary,
-            department = employee.department,
+            department = employee.department?.name ?: "",
             contactNumber = employee.contactNumber
         )
-
     }
 
 }

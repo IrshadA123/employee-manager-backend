@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 
 interface EmployeeRepository : JpaRepository<Employee, Long>, JpaSpecificationExecutor<Employee> {
 
+
     fun findByNameContainingIgnoreCaseOrEmailContainingIgnoreCaseOrDepartment_NameContainingIgnoreCaseOrContactNumberContainingIgnoreCase(
         name: String,
         email: String,
@@ -16,4 +17,6 @@ interface EmployeeRepository : JpaRepository<Employee, Long>, JpaSpecificationEx
     ): List<Employee>
 
     fun findByDeletedFalse(pageable: Pageable): Page<Employee>
+
+    fun existsByDepartment_Id(departmentId: Long): Boolean
 }

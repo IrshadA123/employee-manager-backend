@@ -7,18 +7,18 @@ import com.irshad.employee_manager_backend.repository.EmployeeRepository
 import org.springframework.stereotype.Service
 import com.irshad.employee_manager_backend.exception.EmployeeNotFoundException
 import com.irshad.employee_manager_backend.mapper.EmployeeMapper
+import com.irshad.employee_manager_backend.repository.DepartmentRepository
 import com.irshad.employee_manager_backend.repository.specification.EmployeeSpecification
 import com.irshad.employee_manager_backend.response.pagination.PaginationMetadata
 import com.irshad.employee_manager_backend.response.pagination.PaginationResponse
-import org.apache.commons.lang3.StringUtils.contains
 import org.slf4j.LoggerFactory
-import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 
 @Service
 class EmployeeService (
     private val employeeRepository: EmployeeRepository,
+    private val departmentRepository: DepartmentRepository,
     private val employeeMapper: EmployeeMapper
 
 ) {
@@ -80,27 +80,47 @@ class EmployeeService (
 
     fun createEmployee(requestDTO: EmployeeRequestDTO): EmployeeResponseDTO {
         logger.info("Creating employee with email: {}", requestDTO.email)
+
+        val department = departmentRepository.findById(requestDTO.departmentId)
+            .orElseThrow {
+                IllegalArgumentException("Department not found with id: ${requestDTO.departmentId}")
+            }
+
         val employee = employeeMapper.toEntity(requestDTO)
+        employee.department = department
+
         val savedEmployee = employeeRepository.save(employee)
+
         logger.info("Employee created successfully with id: {}", savedEmployee.id)
         return employeeMapper.toResponseDto(savedEmployee)
     }
 
 
-    fun updateEmployee(id:Long, request: EmployeeRequestDTO ):EmployeeResponseDTO{
+    fun updateEmployee(id: Long, request: EmployeeRequestDTO): EmployeeResponseDTO {
         logger.info("Updating employee with id: {}", id)
+
         val employee = employeeRepository.findById(id).orElseThrow {
             logger.warn("Employee not found with id: {}", id)
-            EmployeeNotFoundException("Employee not found with id: $id")}
+            EmployeeNotFoundException("Employee not found with id: $id")
+        }
 
         validateEmployeeIsActive(employee, id)
+
+        val department = departmentRepository.findById(request.departmentId)
+            .orElseThrow {
+                IllegalArgumentException("Department not found with id: ${request.departmentId}")
+            }
+
         employee.name = request.name
         employee.email = request.email
         employee.salary = request.salary
-        employee.department = request.department
+        employee.department = department
         employee.contactNumber = request.contactNumber
+
         val updatedEmployee = employeeRepository.save(employee)
+
         logger.info("Employee updated successfully with id: {}", updatedEmployee.id)
+
         return employeeMapper.toResponseDto(updatedEmployee)
     }
 

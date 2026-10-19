@@ -16,8 +16,8 @@ data class EmployeeRequestDTO(
     @field:Positive(message = "Salary must be positive")
     val salary: Double,
 
-    @field:NotBlank(message = "Department is required")
-    val department: String,
+    @field:Positive(message = "Department id must be positive")
+    val departmentId: Long,
 
     @field:NotBlank(message = "Contact number is required")
     val contactNumber: String
